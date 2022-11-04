@@ -1,0 +1,50 @@
+[project]
+name = "beam-postgres"
+version = "0.1.0"
+description = "Light IO transforms for Postgres read/write in Apache Beam pipelines."
+readme = "README.md"
+authors = [{ name = "Adam Medziński" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+keywords = ["apache beam", "beam", "postgres", "postgresql"]
+dependencies = [
+    "apache-beam>=2.42.0,<3",
+    "psycopg[binary]>=3.1.4,<4",
+]
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+dev = ["bumpver", "pip-tools", "tox"]
+tests = ["black", "flake8", "isort", "mypy", "pytest>=7"]
+
+[project.urls]
+Homepage = "https://github.com/medzin/beam-postgres"
+
+[build-system]
+requires = ["setuptools>=65.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.isort]
+profile = "black"
+src_paths = ["beam_postgres", "test"]
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.bumpver]
+current_version = "0.1.0"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "Bump version {old_version} -> {new_version}"
+commit = true
+tag = true
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = ['current_version = "{version}"']
+"beam_postgres/__init__.py" = ['__version__ = "{version}"']

@@ -1,0 +1,12 @@
+services:
+  db:
+    image: postgres:14-bullseye
+    ports:
+      - "5432:5432"
+    restart: always
+    environment:
+      POSTGRES_DB: examples
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ${PWD}/scripts/examples.sql:/docker-entrypoint-initdb.d/examples.sql
