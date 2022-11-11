@@ -2,10 +2,36 @@ from dataclasses import astuple, is_dataclass
 from typing import Any, List, Optional, Tuple
 
 import psycopg
-from apache_beam import DoFn, ParDo, PTransform
+from apache_beam import Create, DoFn, ParDo, PTransform
+from psycopg.rows import Row, RowFactory
 
 
-class PostgresWriteFn(DoFn):
+class _PostgresReadFn(DoFn):
+    def __init__(self, conninfo: str, statement: str, row_factory: RowFactory[Row]):
+        self._conninfo = conninfo
+        self._statement = statement
+        self._row_factory = row_factory
+
+    def process(self, element):
+        with psycopg.connect(self._conninfo, row_factory=self._row_factory) as conn:
+            with conn.cursor() as cur:
+                cur.execute(self._statement)
+                for record in cur:
+                    yield record
+
+
+class ReadFromPostgres(PTransform):
+    def __init__(self, conninfo: str, statement: str, row_factory: RowFactory[Row]):
+        self._conninfo = conninfo
+        self._statement = statement
+        self._row_factory = row_factory
+
+    def expand(self, input_or_inputs):
+        postgres_read_fn = _PostgresReadFn(self._conninfo, self._statement, self._row_factory)
+        return input_or_inputs | Create([1]) | "ReadFromPostgres" >> ParDo(postgres_read_fn)
+
+
+class _PostgresWriteFn(DoFn):
     _pg_conn: psycopg.Connection[Tuple[Any, ...]]
     _rows_buffer: List[Any]
 
@@ -50,5 +76,5 @@ class WriteToPostgres(PTransform):
         self._batch_size = batch_size or 1000
 
     def expand(self, input_or_inputs):
-        postgres_write_fn = PostgresWriteFn(self._conninfo, self._statement, self._batch_size)
+        postgres_write_fn = _PostgresWriteFn(self._conninfo, self._statement, self._batch_size)
         return input_or_inputs | "WriteToPostgres" >> ParDo(postgres_write_fn)

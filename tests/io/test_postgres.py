@@ -1,13 +1,13 @@
 from unittest import mock
 
-from beam_postgres.io import PostgresWriteFn
+from beam_postgres.io.postgres import _PostgresWriteFn
 
 
 @mock.patch("psycopg.connect")
 def test_if_writes_are_in_batches(mock_connect: mock.Mock):
     mock_conn = mock_connect.return_value
 
-    fn = PostgresWriteFn("conninfo", "statement", 2)
+    fn = _PostgresWriteFn("conninfo", "statement", 2)
     fn.start_bundle()
 
     fn.process((1, "data"))

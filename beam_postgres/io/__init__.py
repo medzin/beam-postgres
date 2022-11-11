@@ -1,1 +1,1 @@
-from .postgres import PostgresWriteFn, WriteToPostgres
+from .postgres import ReadFromPostgres, WriteToPostgres

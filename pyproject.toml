@@ -31,12 +31,8 @@ Homepage = "https://github.com/medzin/beam-postgres"
 requires = ["setuptools>=65.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.isort]
-profile = "black"
-src_paths = ["beam_postgres", "test"]
-
-[tool.mypy]
-ignore_missing_imports = true
+[tool.setuptools]
+packages = ["beam_postgres"]
 
 [tool.bumpver]
 current_version = "0.1.0"
@@ -48,3 +44,10 @@ tag = true
 [tool.bumpver.file_patterns]
 "pyproject.toml" = ['current_version = "{version}"']
 "beam_postgres/__init__.py" = ['__version__ = "{version}"']
+
+[tool.isort]
+profile = "black"
+src_paths = ["beam_postgres", "test"]
+
+[tool.mypy]
+ignore_missing_imports = true
