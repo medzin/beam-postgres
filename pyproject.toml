@@ -36,7 +36,7 @@ requires = ["setuptools>=65.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["beam_postgres"]
+packages = ["beam_postgres", "beam_postgres.io"]
 
 [tool.bumpver]
 current_version = "0.1.0"
