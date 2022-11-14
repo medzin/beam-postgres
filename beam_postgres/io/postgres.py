@@ -7,27 +7,36 @@ from psycopg.rows import Row, RowFactory
 
 
 class _PostgresReadFn(DoFn):
-    def __init__(self, conninfo: str, statement: str, row_factory: RowFactory[Row]):
+    def __init__(self, conninfo: str, query: str, row_factory: RowFactory[Row]):
         self._conninfo = conninfo
-        self._statement = statement
+        self._query = query
         self._row_factory = row_factory
 
     def process(self, element):
         with psycopg.connect(self._conninfo, row_factory=self._row_factory) as conn:
             with conn.cursor() as cur:
-                cur.execute(self._statement)
+                cur.execute(self._query)
                 for record in cur:
                     yield record
 
 
 class ReadFromPostgres(PTransform):
-    def __init__(self, conninfo: str, statement: str, row_factory: RowFactory[Row]):
+    """A PTransform which reads rows from the Postgres database."""
+
+    def __init__(self, conninfo: str, query: str, row_factory: RowFactory[Row]):
+        """Initializes a read operation from the database.
+
+        Args:
+            conninfo: Psycopg connection string.
+            query: SQL query to be executed.
+            row_factory: Psycopg row factory to be used by the connection.
+        """
         self._conninfo = conninfo
-        self._statement = statement
+        self._query = query
         self._row_factory = row_factory
 
     def expand(self, input_or_inputs):
-        postgres_read_fn = _PostgresReadFn(self._conninfo, self._statement, self._row_factory)
+        postgres_read_fn = _PostgresReadFn(self._conninfo, self._query, self._row_factory)
         return input_or_inputs | Create([1]) | "ReadFromPostgres" >> ParDo(postgres_read_fn)
 
 
@@ -70,7 +79,16 @@ class _PostgresWriteFn(DoFn):
 
 
 class WriteToPostgres(PTransform):
+    """A PTransform which writes rows to the Postgres database."""
+
     def __init__(self, conninfo: str, statement: str, batch_size: Optional[int] = None):
+        """Initializes a write operation to the database.
+
+        Args:
+            conninfo: Psycopg connection string.
+            statement: SQL statement to be executed.
+            batch_size: The number of rows to be written to Postgres per transaction.
+        """
         self._conninfo = conninfo
         self._statement = statement
         self._batch_size = batch_size or 1000
