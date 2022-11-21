@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- RetryRowStrategy ABC class to provide an interface for various retry logics used
+  in WriteToPostgres transform.
+- AlwaysRetryRowStrategy and RetryRowOnTransientErrorStrategy retry strategies.
+
+### Changed
+
+- Renamed ReadFromPostgres to ReadAllFromPostgres, so the name better reflects
+  how the transform works.
+- WriteToPostgres returns a PCollection of tuples with the failed element and
+  error to allow the graceful handling of errors.
+
+###
+
 ## [0.1.0] - 2022-11-14
 
 ### Added

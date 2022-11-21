@@ -1,19 +1,45 @@
+from typing import Tuple
 from unittest import mock
 
-from beam_postgres.io.postgres import _PostgresWriteFn
+import apache_beam as beam
+from apache_beam.testing.test_pipeline import TestPipeline
+from apache_beam.testing.util import assert_that, equal_to
+from psycopg import Error, IntegrityError
+
+from beam_postgres.io import WriteToPostgres
 
 
-@mock.patch("psycopg.connect")
-def test_if_writes_are_in_batches(mock_connect: mock.Mock):
-    mock_conn = mock_connect.return_value
+class TestWriteToPostgres:
+    @mock.patch("psycopg.connect")
+    def test_if_writes_are_in_batches(self, mock_connect: mock.Mock):
+        mock_conn = mock_connect.return_value
 
-    fn = _PostgresWriteFn("conninfo", "statement", 2)
-    fn.start_bundle()
+        with TestPipeline() as p:
+            data = p | "Reading example records" >> beam.Create(
+                [
+                    ("test_1",),
+                    ("test_2",),
+                    ("test_3",),
+                    ("test_4",),
+                    ("test_5",),
+                ]
+            )
+            data | "Writing example records to database" >> WriteToPostgres(
+                "host=localhost dbname=examples user=postgres password=postgres", "dummy", 2
+            )
 
-    fn.process((1, "data"))
-    fn.process((2, "data"))
-    fn.process((3, "data"))
-    fn.process((4, "data"))
-    fn.process((5, "data"))
+        assert 3 == mock_conn.commit.call_count
 
-    assert 2 == mock_conn.commit.call_count
+    @mock.patch("psycopg.connect")
+    def test_if_write_errors_are_returned(self, mock_connect: mock.Mock):
+        def equal_fn(expected: Tuple[Tuple[str], Error], actual: Tuple[Tuple[str], Error]):
+            return expected[0] == actual[0] and isinstance(actual[1], type(expected[1]))
+
+        mock_connect.return_value.cursor.return_value.__enter__.return_value.execute.side_effect = IntegrityError()
+
+        with TestPipeline() as p:
+            data = p | "Reading example records" >> beam.Create([("test_1",)])
+            errors = data | "Writing example records to database" >> WriteToPostgres(
+                "host=localhost dbname=examples user=postgres password=postgres", "dummy", 2
+            )
+            assert_that(errors, equal_to([(("test_1",), IntegrityError())], equal_fn))
