@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2022-11-21
+
 ### Added
 
 - RetryRowStrategy ABC class to provide an interface for various retry logics used
@@ -29,5 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ReadFromPostgres transform for reading from the database.
 - WriteToPostgres transform for writing to the database.
 
-[unreleased]: https://github.com/medzin/beam-postgres/compare/0.1.0...HEAD
+[unreleased]: https://github.com/medzin/beam-postgres/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/medzin/beam-postgres/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/medzin/beam-postgres/releases/tag/0.1.0
