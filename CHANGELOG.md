@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed missing argument in sleep log.
+
 ## [0.2.0] - 2022-11-21
 
 ### Added
@@ -21,8 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   how the transform works.
 - WriteToPostgres returns a PCollection of tuples with the failed element and
   error to allow the graceful handling of errors.
-
-###
 
 ## [0.1.0] - 2022-11-14
 
