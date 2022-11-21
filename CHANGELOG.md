@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed missing argument in sleep log.
+- Fixed establishing connection per bundle without closing, which resulted in
+  connection leakage
 
 ## [0.2.0] - 2022-11-21
 

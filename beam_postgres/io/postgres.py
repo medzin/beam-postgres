@@ -67,8 +67,10 @@ class _PostgresWriteFn(DoFn):
 
         self._rows_buffer = []
 
-    def start_bundle(self):
+    def setup(self):
         self._pg_conn = psycopg.connect(self._conninfo)
+
+    def start_bundle(self):
         self._rows_buffer = []
 
     def process(self, element) -> Optional[Iterator[WindowedValue]]:
@@ -81,6 +83,9 @@ class _PostgresWriteFn(DoFn):
         if self._rows_buffer:
             return self._flush_batch()
         return None
+
+    def teardown(self):
+        self._pg_conn.close()
 
     def _execute_batch(self, batch: List[Any]) -> Optional[Tuple[Any, psycopg.Error]]:
         with self._pg_conn.cursor() as cur:
