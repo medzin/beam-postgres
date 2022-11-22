@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Resolved TypeError: Cannot convert GlobalWindow to
+  apache_beam.utils.windowed_value.\_IntervalWindowBase for non-global windows.
+
 ## [0.2.1] - 2022-11-21
 
 ### Fixed

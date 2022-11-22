@@ -6,8 +6,9 @@ from typing import Any, Iterator, List, Optional, Tuple
 
 import psycopg
 from apache_beam import Create, DoFn, ParDo, PTransform
-from apache_beam.transforms.window import GlobalWindows, WindowedValue
+from apache_beam.transforms.window import GlobalWindow, WindowedValue
 from apache_beam.utils.retry import FuzzedExponentialIntervals
+from apache_beam.utils.windowed_value import _IntervalWindowBase
 from psycopg.rows import Row, RowFactory
 
 from beam_postgres.io.retry import RetryRowOnTransientErrorStrategy, RetryRowStrategy
@@ -131,7 +132,14 @@ class _PostgresWriteFn(DoFn):
         self._rows_buffer = []
 
         return itertools.chain(
-            [GlobalWindows.windowed_value((row, err)) for row, err in failed_rows],
+            [
+                WindowedValue(
+                    (row, err),
+                    GlobalWindow().max_timestamp(),
+                    [_IntervalWindowBase(0, GlobalWindow().max_timestamp())],
+                )
+                for row, err in failed_rows
+            ],
         )
 
 
