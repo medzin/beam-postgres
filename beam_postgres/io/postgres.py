@@ -49,8 +49,14 @@ class ReadAllFromPostgres(PTransform):
         self._row_factory = row_factory
 
     def expand(self, input_or_inputs):
-        postgres_read_fn = _PostgresReadFn(self._conninfo, self._query, self._row_factory)
-        return input_or_inputs | Create([1]) | "ReadAllFromPostgres" >> ParDo(postgres_read_fn)
+        postgres_read_fn = _PostgresReadFn(
+            self._conninfo, self._query, self._row_factory
+        )
+        return (
+            input_or_inputs
+            | Create([1])
+            | "ReadAllFromPostgres" >> ParDo(postgres_read_fn)
+        )
 
 
 class _PostgresWriteFn(DoFn):
@@ -58,7 +64,12 @@ class _PostgresWriteFn(DoFn):
     _rows_buffer: List[Any]
 
     def __init__(
-        self, conninfo: str, statement: str, batch_size: int, retry_strategy: RetryRowStrategy, max_retries: int
+        self,
+        conninfo: str,
+        statement: str,
+        batch_size: int,
+        retry_strategy: RetryRowStrategy,
+        max_retries: int,
     ):
         self._conninfo = conninfo
         self._statement = statement
@@ -110,7 +121,11 @@ class _PostgresWriteFn(DoFn):
         batch = self._rows_buffer.copy()
         failed_rows: List[Tuple[Any, psycopg.Error]] = []
         retry_intervals = iter(
-            FuzzedExponentialIntervals(initial_delay_secs=1, num_retries=self._max_retries, max_delay_secs=10 * 60)
+            FuzzedExponentialIntervals(
+                initial_delay_secs=1,
+                num_retries=self._max_retries,
+                max_delay_secs=10 * 60,
+            )
         )
         while True:
             failed_row = self._execute_batch(batch)
@@ -120,7 +135,9 @@ class _PostgresWriteFn(DoFn):
             try:
                 sleep_interval = next(retry_intervals)
             except StopIteration:
-                raise RuntimeError("cannot process the bundle in the given number of retries")
+                raise RuntimeError(
+                    "cannot process the bundle in the given number of retries"
+                )
 
             if not self._retry_strategy.should_retry(*failed_row):
                 failed_rows.append(failed_row)
@@ -146,13 +163,15 @@ class _PostgresWriteFn(DoFn):
 class WriteToPostgres(PTransform):
     """A PTransform which writes rows to the Postgres database.
 
-    The transform will try to split bundles into batches with the configured size and insert them in separate
-    transactions (batch after batch). If any row fails, it will use provided RetryRowStrategy implementation to decide
-    if it should be retried. Elements that should not be retried are returned from the transform as a tuple with the
-    corresponding error.
+    The transform will try to split bundles into batches with the configured
+    size and insert them in separate transactions (batch after batch). If any
+    row fails, it will use provided RetryRowStrategy implementation to decide if
+    it should be retried. Elements that should not be retried are returned from
+    the transform as a tuple with the corresponding error.
 
-    There is no guarantee that the row statement will not be executed twice or more in separate transactions, so the
-    provided statement should be idempotent (e.g. Postgres upserts).
+    There is no guarantee that the row statement will not be executed twice or
+    more in separate transactions, so the provided statement should be
+    idempotent (e.g. Postgres upserts).
     """
 
     def __init__(
@@ -168,11 +187,13 @@ class WriteToPostgres(PTransform):
         Args:
             conninfo: Psycopg connection string.
             statement: SQL statement to be executed.
-            batch_size: The number of rows to be written to Postgres per transaction.
-            retry_strategy: RetryRowStrategy implementation that the transform will use to decide if the row can be
-                retried. Defaults to RetryRowOnTransientErrorStrategy.
-            max_retries: Max number of retries per bundle before transform will raise an exception that it cannot
-                process it.
+            batch_size: The number of rows to be written to Postgres per
+                transaction.
+            retry_strategy: RetryRowStrategy implementation that the transform
+                will use to decide if the row can be retried. Defaults to
+                RetryRowOnTransientErrorStrategy.
+            max_retries: Max number of retries per bundle before transform will
+                raise an exception that it cannot process it.
         """
         self._conninfo = conninfo
         self._statement = statement
@@ -182,6 +203,10 @@ class WriteToPostgres(PTransform):
 
     def expand(self, input_or_inputs):
         postgres_write_fn = _PostgresWriteFn(
-            self._conninfo, self._statement, self._batch_size, self._retry_strategy, self._max_retries
+            self._conninfo,
+            self._statement,
+            self._batch_size,
+            self._retry_strategy,
+            self._max_retries,
         )
         return input_or_inputs | "WriteToPostgres" >> ParDo(postgres_write_fn)

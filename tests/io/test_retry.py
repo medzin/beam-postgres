@@ -19,12 +19,16 @@ class TestAlwaysRetryRowStrategy:
 
 
 class TestRetryRowOnTransientErrorStrategy:
-    @pytest.mark.parametrize("error", [InterfaceError(), InternalError(), OperationalError()])
+    @pytest.mark.parametrize(
+        "error", [InterfaceError(), InternalError(), OperationalError()]
+    )
     def test_if_returns_true_on_transient_errors(self, error: Error):
         strategy = RetryRowOnTransientErrorStrategy()
         assert strategy.should_retry(None, error)
 
-    @pytest.mark.parametrize("error", [DataError(), IntegrityError(), ProgrammingError()])
+    @pytest.mark.parametrize(
+        "error", [DataError(), IntegrityError(), ProgrammingError()]
+    )
     def test_if_returns_false_on_other_errors(self, error: Error):
         strategy = RetryRowOnTransientErrorStrategy()
         assert not strategy.should_retry(None, error)

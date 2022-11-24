@@ -18,10 +18,14 @@ with beam.Pipeline(options=PipelineOptions()) as p:
             Example("y" * 100),
         ]
     )
-    failed_rows_with_errors = data | "Writing example records to database" >> WriteToPostgres(
-        "host=localhost dbname=examples user=postgres password=postgres",
-        "insert into sink (data) values (%s)",
-        retry_strategy=RetryRowOnTransientErrorStrategy(),
-        max_retries=2,
+    failed_rows_with_errors = (
+        data
+        | "Writing example records to database"
+        >> WriteToPostgres(
+            "host=localhost dbname=examples user=postgres password=postgres",
+            "insert into sink (data) values (%s)",
+            retry_strategy=RetryRowOnTransientErrorStrategy(),
+            max_retries=2,
+        )
     )
     failed_rows_with_errors | "Print errors" >> beam.Map(print)
