@@ -14,6 +14,7 @@ from psycopg.rows import Row, RowFactory
 from beam_postgres.io.retry import RetryRowOnTransientErrorStrategy, RetryRowStrategy
 
 DEFAULT_MAX_BATCH_WRITE_SIZE = 10000
+DEFAULT_MAX_RETRY_DELAY_SECS = 10 * 60
 DEFAULT_WRITE_RETRIES = 1000
 
 _LOGGER = logging.getLogger(__name__)
@@ -70,12 +71,14 @@ class _PostgresWriteFn(DoFn):
         batch_size: int,
         retry_strategy: RetryRowStrategy,
         max_retries: int,
+        max_retry_delay_secs: int,
     ):
         self._conninfo = conninfo
         self._statement = statement
         self._max_batch_size = batch_size
         self._retry_strategy = retry_strategy
         self._max_retries = max_retries
+        self._max_retry_delay_secs = max_retry_delay_secs
 
         self._rows_buffer = []
 
@@ -124,7 +127,7 @@ class _PostgresWriteFn(DoFn):
             FuzzedExponentialIntervals(
                 initial_delay_secs=1,
                 num_retries=self._max_retries,
-                max_delay_secs=10 * 60,
+                max_delay_secs=self._max_retry_delay_secs,
             )
         )
         while True:
@@ -181,6 +184,7 @@ class WriteToPostgres(PTransform):
         batch_size: int = DEFAULT_MAX_BATCH_WRITE_SIZE,
         retry_strategy: RetryRowStrategy = RetryRowOnTransientErrorStrategy(),
         max_retries: int = DEFAULT_WRITE_RETRIES,
+        max_retry_delay_secs: int = DEFAULT_MAX_RETRY_DELAY_SECS,
     ):
         """Initializes a write operation to the database.
 
@@ -194,12 +198,14 @@ class WriteToPostgres(PTransform):
                 RetryRowOnTransientErrorStrategy.
             max_retries: Max number of retries per bundle before transform will
                 raise an exception that it cannot process it.
+            max_retry_delay_secs: Maximum retry delay (in seconds).
         """
         self._conninfo = conninfo
         self._statement = statement
         self._batch_size = batch_size
         self._retry_strategy = retry_strategy
         self._max_retries = max_retries
+        self._max_retry_delay_secs = max_retry_delay_secs
 
     def expand(self, input_or_inputs):
         postgres_write_fn = _PostgresWriteFn(
@@ -208,5 +214,6 @@ class WriteToPostgres(PTransform):
             self._batch_size,
             self._retry_strategy,
             self._max_retries,
+            self._max_retry_delay_secs,
         )
         return input_or_inputs | "WriteToPostgres" >> ParDo(postgres_write_fn)
