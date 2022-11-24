@@ -8,6 +8,7 @@ from psycopg import (
     OperationalError,
     ProgrammingError,
 )
+from psycopg.errors import DeadlockDetected
 
 from beam_postgres.io import AlwaysRetryRowStrategy, RetryRowOnTransientErrorStrategy
 
@@ -20,7 +21,8 @@ class TestAlwaysRetryRowStrategy:
 
 class TestRetryRowOnTransientErrorStrategy:
     @pytest.mark.parametrize(
-        "error", [InterfaceError(), InternalError(), OperationalError()]
+        "error",
+        [InterfaceError(), InternalError(), OperationalError(), DeadlockDetected()],
     )
     def test_if_returns_true_on_transient_errors(self, error: Error):
         strategy = RetryRowOnTransientErrorStrategy()

@@ -35,11 +35,11 @@ class RetryRowOnTransientErrorStrategy(RetryRowStrategy):
     """RetryRowStrategy implementation that allows retry of elements with
     transient errors."""
 
-    _TRANSIENT_ERRORS = [
+    _TRANSIENT_ERRORS = (
         OperationalError,
         InternalError,
         InterfaceError,
-    ]
+    )
 
     def should_retry(self, element: Any, error: Error) -> bool:
-        return type(error) in self._TRANSIENT_ERRORS
+        return isinstance(error, self._TRANSIENT_ERRORS)
