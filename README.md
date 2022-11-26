@@ -1,5 +1,8 @@
 # beam-postgres
 
+[![PyPI](https://img.shields.io/pypi/v/beam-postgres.svg)][pypi-project]
+[![Supported Versions](https://img.shields.io/pypi/pyversions/beam-postgres.svg)][pypi-project]
+
 Light IO transforms for Postgres read/write in Apache Beam pipelines.
 
 ## Goal
@@ -65,4 +68,5 @@ with beam.Pipeline(options=PipelineOptions()) as p:
 
 See [here][examples] for more examples.
 
+[pypi-project]: https://pypi.org/project/beam-postgres
 [examples]: https://github.com/medzin/beam-postgres/tree/main/examples
