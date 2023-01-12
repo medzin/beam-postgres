@@ -146,7 +146,11 @@ class _PostgresWriteFn(DoFn):
                 failed_rows.append(failed_row)
                 batch.remove(failed_row[0])
 
-            _LOGGER.info("Sleeping %s seconds before retrying write.", sleep_interval)
+            _LOGGER.info(
+                "Sleeping %s seconds before retrying to write because of error: %s",
+                sleep_interval,
+                failed_row[1],
+            )
             time.sleep(sleep_interval)
 
         self._rows_buffer = []

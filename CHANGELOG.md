@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Improve retry logging to include an error message.
+
 ## [0.3.0] - 2022-11-26
 
 ### Added
