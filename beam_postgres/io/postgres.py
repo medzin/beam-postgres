@@ -135,16 +135,17 @@ class _PostgresWriteFn(DoFn):
             if not failed_row:
                 break
 
+            if not self._retry_strategy.should_retry(*failed_row):
+                failed_rows.append(failed_row)
+                batch.remove(failed_row[0])
+                continue
+
             try:
                 sleep_interval = next(retry_intervals)
             except StopIteration:
                 raise RuntimeError(
                     "cannot process the bundle in the given number of retries"
                 )
-
-            if not self._retry_strategy.should_retry(*failed_row):
-                failed_rows.append(failed_row)
-                batch.remove(failed_row[0])
 
             _LOGGER.info(
                 "Sleeping %s seconds before retrying to write because of error: %s",
