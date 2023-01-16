@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2023-01-16
+
 ### Changed
 
-- Do not sleep after non-retryable errors.
+- Do not sleep after non-retryable errors. There is no sense in waiting for 
+  something.
 
 ## [0.3.1] - 2023-01-12
 
@@ -66,7 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ReadFromPostgres transform for reading from the database.
 - WriteToPostgres transform for writing to the database.
 
-[unreleased]: https://github.com/medzin/beam-postgres/compare/0.3.1...HEAD
+[unreleased]: https://github.com/medzin/beam-postgres/compare/0.3.2...HEAD
+[0.3.2]: https://github.com/medzin/beam-postgres/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/medzin/beam-postgres/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/medzin/beam-postgres/compare/0.2.3...0.3.0
 [0.2.3]: https://github.com/medzin/beam-postgres/compare/0.2.2...0.2.3
