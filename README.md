@@ -12,9 +12,9 @@ not intended to support many different SQL database engines.
 
 ## Features
 
-- `ReadAllFromPostgres` and `WriteToPostgres` transforms
+- `ReadAllFromPostgres`, `ReadFromPostgres`` and `WriteToPostgres` transforms
 - Records can be mapped to tuples, dictionaries or dataclasses
-- Writes are in configurable batches
+- Reads and writes are in configurable batches
 
 ## Usage
 
