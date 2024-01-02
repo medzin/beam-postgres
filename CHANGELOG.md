@@ -7,11 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- ReadFromPostgres transform for reading from the database in batches.
+
 ## [0.3.2] - 2023-01-16
 
 ### Changed
 
-- Do not sleep after non-retryable errors. There is no sense in waiting for 
+- Do not sleep after non-retryable errors. There is no sense in waiting for
   something.
 
 ## [0.3.1] - 2023-01-12

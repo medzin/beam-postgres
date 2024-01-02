@@ -1,4 +1,4 @@
-from .postgres import ReadAllFromPostgres, WriteToPostgres
+from .postgres import ReadAllFromPostgres, ReadFromPostgres, WriteToPostgres
 from .retry import (
     AlwaysRetryRowStrategy,
     RetryRowOnTransientErrorStrategy,

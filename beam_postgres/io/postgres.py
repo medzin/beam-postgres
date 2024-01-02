@@ -6,18 +6,112 @@ from typing import Any, Iterator, List, Optional, Tuple
 
 import psycopg
 from apache_beam import Create, DoFn, ParDo, PTransform
+from apache_beam.io import iobase
+from apache_beam.io.range_trackers import OffsetRangeTracker, UnsplittableRangeTracker
 from apache_beam.transforms.window import GlobalWindow, WindowedValue
 from apache_beam.utils.retry import FuzzedExponentialIntervals
 from apache_beam.utils.windowed_value import _IntervalWindowBase
+from psycopg import sql
 from psycopg.rows import Row, RowFactory
+from typing_extensions import LiteralString
 
 from beam_postgres.io.retry import RetryRowOnTransientErrorStrategy, RetryRowStrategy
 
+DEFAULT_BATCH_SIZE = 100
 DEFAULT_MAX_BATCH_WRITE_SIZE = 10000
 DEFAULT_MAX_RETRY_DELAY_SECS = 10 * 60
 DEFAULT_WRITE_RETRIES = 1000
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class _PostgresBoundedSource(iobase.BoundedSource):
+    def __init__(
+        self, conninfo: str, query: str, row_factory: RowFactory[Row], batch_size: int
+    ):
+        self._conninfo = conninfo
+        self._query: LiteralString = query
+        self._row_factory = row_factory
+        self._batch_size = batch_size
+
+    def estimate_size(self) -> Optional[int]:
+        return (
+            None  # TODO(medzin): will work without it but it is possible to implement.
+        )
+
+    def get_range_tracker(
+        self, start_position: Optional[Any], stop_position: Optional[Any]
+    ) -> iobase.RangeTracker:
+        if start_position is None:
+            start_position = 0
+        if stop_position is None:
+            stop_position = OffsetRangeTracker.OFFSET_INFINITY
+
+        return UnsplittableRangeTracker(
+            OffsetRangeTracker(start_position, stop_position)
+        )
+
+    def read(self, range_tracker: iobase.RangeTracker):
+        query_params: Tuple[Any, ...] = ()
+
+        if range_tracker.stop_position() == OffsetRangeTracker.OFFSET_INFINITY:
+            query = sql.Composed([sql.SQL(self._query)])
+        else:
+            query = sql.Composed([sql.SQL(self._query), sql.SQL(" LIMIT %s OFFSET %s")])
+            query_params = (
+                range_tracker.stop_position(),
+                range_tracker.start_position(),
+            )
+
+        with psycopg.connect(self._conninfo, row_factory=self._row_factory) as conn:
+            with conn.cursor(name="batch") as cur:
+                cur.itersize = self._batch_size
+                cur.execute(query, query_params)
+                for record in cur:
+                    yield record
+
+    def split(self, desired_bundle_size, start_position=None, stop_position=None):
+        if start_position is None:
+            start_position = 0
+        if stop_position is None:
+            stop_position = OffsetRangeTracker.OFFSET_INFINITY
+
+        yield iobase.SourceBundle(
+            weight=1,
+            source=self,
+            start_position=start_position,
+            stop_position=stop_position,
+        )
+
+
+class ReadFromPostgres(PTransform):
+    """A PTransform which reads rows from the Postgres database in batches."""
+
+    def __init__(
+        self,
+        conninfo: str,
+        query: str,
+        row_factory: RowFactory[Row],
+        batch_size: int = DEFAULT_BATCH_SIZE,
+    ):
+        """Initializes a read operation from the database.
+
+        Args:
+            conninfo: Psycopg connection string.
+            query: SQL query to be executed.
+            row_factory: Psycopg row factory to be used by the connection.
+            batch_size: The number of rows to be read from Postgres per batch.
+        """
+
+        self._conninfo = conninfo
+        self._query = query
+        self._row_factory = row_factory
+        self._postgres_source = _PostgresBoundedSource(
+            self._conninfo, self._query, self._row_factory, batch_size
+        )
+
+    def expand(self, pcoll):
+        return pcoll | iobase.Read(self._postgres_source)
 
 
 class _PostgresReadFn(DoFn):
