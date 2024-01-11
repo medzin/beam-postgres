@@ -68,5 +68,12 @@ with beam.Pipeline(options=PipelineOptions()) as p:
 
 See [here][examples] for more examples.
 
+### Reading in batches
+
+There may be situations when you have so much data that it will not fit into the
+memory - then you want to read your table data in batches. You can see an
+example code [here](examples/read.py#L11) (the code reads records in a batches of
+1).
+
 [pypi-project]: https://pypi.org/project/beam-postgres
 [examples]: https://github.com/medzin/beam-postgres/tree/main/examples
