@@ -255,7 +255,7 @@ class _PostgresWriteFn(DoFn):
                 WindowedValue(
                     (row, err),
                     GlobalWindow().max_timestamp(),
-                    [_IntervalWindowBase(0, GlobalWindow().max_timestamp())],
+                    [_IntervalWindowBase(0, GlobalWindow().max_timestamp())],  # type: ignore
                 )
                 for row, err in failed_rows
             ],
