@@ -1,7 +1,7 @@
 import itertools
 import logging
 import time
-from dataclasses import astuple, is_dataclass
+from dataclasses import asdict, is_dataclass
 from typing import Any, Iterator, List, Optional, Tuple
 
 import psycopg
@@ -200,11 +200,11 @@ class _PostgresWriteFn(DoFn):
         with self._pg_conn.cursor() as cur:
             for row in batch:
                 if is_dataclass(row):
-                    params = astuple(row)
-                elif isinstance(row, tuple):
+                    params = asdict(row)  # type: ignore
+                elif isinstance(row, dict) or isinstance(row, tuple):
                     params = row
                 else:
-                    raise TypeError("element must be a tuple or dataclass")
+                    raise TypeError("element must be a tuple, dict or dataclass")
 
                 try:
                     cur.execute(self._statement, params, prepare=True)

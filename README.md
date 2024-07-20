@@ -61,7 +61,7 @@ with beam.Pipeline(options=PipelineOptions()) as p:
     )
     data | "Writing example records to database" >> WriteToPostgres(
         "host=localhost dbname=examples user=postgres password=postgres",
-        "insert into sink (data) values (%s)",
+        "insert into sink (data) values (%(data)s)",
     )
 
 ```
