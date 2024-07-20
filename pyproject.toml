@@ -1,6 +1,6 @@
 [project]
 name = "beam-postgres"
-version = "0.4.1"
+version = "0.5.0"
 description = "Light IO transforms for Postgres read/write in Apache Beam pipelines."
 readme = "README.md"
 authors = [{ name = "Adam Medziński" }]
@@ -41,7 +41,7 @@ build-backend = "setuptools.build_meta"
 packages = ["beam_postgres", "beam_postgres.io"]
 
 [tool.bumpver]
-current_version = "0.4.1"
+current_version = "0.5.0"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "Bump version {old_version} -> {new_version}"
 commit = true
