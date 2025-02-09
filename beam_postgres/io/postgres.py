@@ -202,7 +202,7 @@ class _PostgresWriteFn(DoFn):
                 if is_dataclass(row):
                     params = asdict(row)  # type: ignore
                 elif isinstance(row, dict) or isinstance(row, tuple):
-                    params = row
+                    params = row  # type: ignore
                 else:
                     raise TypeError("element must be a tuple, dict or dataclass")
 

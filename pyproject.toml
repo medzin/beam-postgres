@@ -55,4 +55,5 @@ profile = "black"
 src_paths = ["beam_postgres", "test"]
 
 [tool.mypy]
+exclude = ["^build/.*"]
 ignore_missing_imports = true
